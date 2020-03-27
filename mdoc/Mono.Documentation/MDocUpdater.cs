@@ -4361,18 +4361,26 @@ namespace Mono.Documentation
                     valueToUse = valueToUse.Remove(valueToUse.Length - 1);
             }
 
-            AddXmlNode (e.SelectNodes ("ReturnType").Cast<XmlElement> ().ToArray (),
-                x => x.InnerText == valueToUse,
-                x => x.InnerText = valueToUse,
-                () =>
-                {
-                    var newNode = WriteElementText (e, "ReturnType", valueToUse, forceNewElement: true);
-                    if (attributes != null)
-					MakeAttributes (e, GetCustomAttributes (attributes, ""), typeEntry.Framework, typeEntry);
 
-                    return newNode;
-                },
-            type);
+            DocUtils.AddElementWithFx(
+                    typeEntry,
+                    parent: e,
+                    clear: parent =>
+                    {
+                        parent.RemoveAll();
+                    },
+                    findExisting: parent =>
+                    {
+                        return parent.ChildNodes.Cast<XmlElement>().SingleOrDefault(rt => rt.Name == "ReturnType" && rt.Value == valueToUse);
+                    },
+                    addItem: parent =>
+                    {
+                        var newNode = WriteElementText(e, "ReturnType", valueToUse, forceNewElement: true);
+                        if (attributes != null)
+                            MakeAttributes(e, GetCustomAttributes(attributes, ""), typeEntry.Framework, typeEntry);
+
+                        return newNode;
+                    });
         }
 
         private bool IsReadonlyAttribute(IList<CustomAttribute> attributes)
